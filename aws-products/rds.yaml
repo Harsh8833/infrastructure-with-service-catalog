@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Self-Service RDS Instance Deployment Template
+
+Parameters:
+  DBInstanceIdentifier:
+    Type: String
+    Description: The database instance identifier
+  DBInstanceClass:
+    Type: String
+    Description: The compute and memory capacity of the DB instance (e.g., db.t2.micro)
+  AllocatedStorage:
+    Type: Number
+    Description: The allocated storage size specified in GBs
+    Default: 20
+  DBName:
+    Type: String
+    Description: The name of the database to create
+  Engine:
+    Type: String
+    Description: The name of the database engine to be used for this instance (e.g., MySQL, PostgreSQL)
+  MasterUsername:
+    Type: String
+    Description: The name of the master user for the database instance
+  MasterUserPassword:
+    Type: String
+    Description: The password for the master database user
+    NoEcho: true
+  VPCSecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: List of VPC security groups to associate with the RDS instance
+  DBSubnetGroupName:
+    Type: String
+    Description: A DB subnet group to associate with the DB instance
+  MultiAZ:
+    Type: String
+    Description: Specifies if the DB instance is a Multi-AZ deployment (true or false)
+    AllowedValues: [ "true", "false" ]
+    Default: "false"
+
+Resources:
+  RDSInstance:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBInstanceIdentifier: !Ref DBInstanceIdentifier
+      DBInstanceClass: !Ref DBInstanceClass
+      AllocatedStorage: !Ref AllocatedStorage
+      DBName: !Ref DBName
+      Engine: !Ref Engine
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterUserPassword
+      VPCSecurityGroups: !Ref VPCSecurityGroupIds
+      DBSubnetGroupName: !Ref DBSubnetGroupName
+      MultiAZ: !Ref MultiAZ
+      PubliclyAccessible: false
+
+Outputs:
+  DBInstanceIdentifier:
+    Description: The database instance identifier
+    Value: !Ref RDSInstance
+  DBEndpointAddress:
+    Description: The connection endpoint for the RDS instance
+    Value: !GetAtt RDSInstance.Endpoint.Address
+  DBEndpointPort:
+    Description: The port number on which the database accepts connections
+    Value: !GetAtt RDSInstance.Endpoint.Port
+  DBInstanceArn:
+    Description: The ARN of the RDS instance
+    Value: !GetAtt RDSInstance.Arn

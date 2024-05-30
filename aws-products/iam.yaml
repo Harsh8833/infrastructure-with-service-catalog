@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create IAM Role with specified policies
+
+Parameters:
+  RoleName:
+    Type: String
+    Description: Name of the IAM role
+  PolicyArn1:
+    Type: String
+    Description: ARN of the first policy to attach to the IAM role
+  PolicyArn2:
+    Type: String
+    Description: ARN of the second policy to attach to the IAM role (optional)
+    Default: ""
+  ServicePrincipal:
+    Type: String
+    Description: Service Principal (e.g., ec2.amazonaws.com)
+
+Conditions:
+  HasPolicyArn2:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref PolicyArn2
+          - ""
+
+Resources:
+  IAMRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Ref RoleName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: !Ref ServicePrincipal
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Ref PolicyArn1
+        - !If
+          - HasPolicyArn2
+          - !Ref PolicyArn2
+          - !Ref "AWS::NoValue"
+
+Outputs:
+  RoleArn:
+    Description: The ARN of the created IAM role
+    Value: !GetAtt IAMRole.Arn
+    Export:
+      Name: !Sub '${RoleName}-Arn'

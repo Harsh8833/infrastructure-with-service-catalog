@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Self-Service Lambda Function Deployment Template
+
+Parameters:
+  FunctionName:
+    Type: String
+    Description: The name of the Lambda function
+  Handler:
+    Type: String
+    Description: The handler for the Lambda function (e.g., index.handler)
+  Runtime:
+    Type: String
+    Description: The runtime environment for the Lambda function (e.g., nodejs14.x, python3.8)
+  RoleArn:
+    Type: String
+    Description: The ARN of the IAM role for the Lambda function
+  S3Bucket:
+    Type: String
+    Description: The S3 bucket containing the Lambda function code
+  S3Key:
+    Type: String
+    Description: The S3 key (object name) of the Lambda function code
+  MemorySize:
+    Type: Number
+    Description: The amount of memory available to the Lambda function (in MB)
+    Default: 128
+  Timeout:
+    Type: Number
+    Description: The function execution timeout (in seconds)
+    Default: 60
+  EnvironmentVariables:
+    Type: CommaDelimitedList
+    Description: Environment variables for the Lambda function (e.g., key1=value1,key2=value2)
+    Default: ""
+
+Resources:
+  LambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: !Ref FunctionName
+      Handler: !Ref Handler
+      Runtime: !Ref Runtime
+      Role: !Ref RoleArn
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref S3Key
+      MemorySize: !Ref MemorySize
+      Timeout: !Ref Timeout
+      Environment:
+        Variables:
+          Fn::If:
+            - HasEnvVars
+            - !Sub
+              - |
+                {
+                ${EnvironmentVariables}
+                }
+              - EnvironmentVariables: !Join
+                - ","
+                - !Ref EnvironmentVariables
+            - {}
+
+Conditions:
+  HasEnvVars:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref EnvironmentVariables
+          - ""
+
+Outputs:
+  FunctionArn:
+    Description: The ARN of the created Lambda function
+    Value: !GetAtt LambdaFunction.Arn
+    Export:
+      Name: !Sub '${FunctionName}-Arn'

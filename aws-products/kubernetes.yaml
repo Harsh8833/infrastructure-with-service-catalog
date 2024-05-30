@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Self-Service Kubernetes Cluster Deployment Template
+
+Parameters:
+  ClusterName:
+    Type: String
+    Description: The name of the EKS cluster
+  NodeGroupName:
+    Type: String
+    Description: The name of the node group
+  NodeInstanceType:
+    Type: String
+    Description: EC2 instance type for the nodes
+    Default: t3.medium
+  NodeGroupMinSize:
+    Type: Number
+    Description: Minimum size of the node group
+    Default: 1
+  NodeGroupMaxSize:
+    Type: Number
+    Description: Maximum size of the node group
+    Default: 3
+  NodeGroupDesiredCapacity:
+    Type: Number
+    Description: Desired capacity of the node group
+    Default: 2
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: The VPC ID for the EKS cluster
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: The subnets for the EKS cluster
+  ClusterRoleArn:
+    Type: String
+    Description: The ARN of the IAM role for the EKS cluster
+  NodeRoleArn:
+    Type: String
+    Description: The ARN of the IAM role for the node group
+
+Resources:
+  EKSCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Ref ClusterName
+      RoleArn: !Ref ClusterRoleArn
+      ResourcesVpcConfig:
+        SubnetIds: !Ref SubnetIds
+
+  EKSNodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      ClusterName: !Ref EKSCluster
+      NodegroupName: !Ref NodeGroupName
+      NodeRole: !Ref NodeRoleArn
+      Subnets: !Ref SubnetIds
+      ScalingConfig:
+        MinSize: !Ref NodeGroupMinSize
+        MaxSize: !Ref NodeGroupMaxSize
+        DesiredSize: !Ref NodeGroupDesiredCapacity
+      InstanceTypes:
+        - !Ref NodeInstanceType
+
+Outputs:
+  ClusterName:
+    Description: The name of the EKS cluster
+    Value: !Ref EKSCluster
+  NodeGroupName:
+    Description: The name of the node group
+    Value: !Ref EKSNodeGroup
+  ClusterEndpoint:
+    Description: The endpoint of the EKS cluster
+    Value: !GetAtt EKSCluster.Endpoint
+  ClusterArn:
+    Description: The ARN of the EKS cluster
+    Value: !GetAtt EKSCluster.Arn
+  NodeGroupArn:
+    Description: The ARN of the node group
+    Value: !GetAtt EKSNodeGroup.Arn

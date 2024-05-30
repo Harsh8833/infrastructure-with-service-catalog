@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Self-Service Security Group Deployment Template
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: The ID of the VPC where the security group will be created
+  GroupName:
+    Type: String
+    Description: The name of the security group
+  GroupDescription:
+    Type: String
+    Description: The description of the security group
+  IngressRules:
+    Type: CommaDelimitedList
+    Description: Ingress rules in the format 'Protocol,FromPort,ToPort,Cidr'
+    Default: ""
+  EgressRules:
+    Type: CommaDelimitedList
+    Description: Egress rules in the format 'Protocol,FromPort,ToPort,Cidr'
+    Default: ""
+
+Resources:
+  SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: !Ref GroupName
+      GroupDescription: !Ref GroupDescription
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - Fn::If:
+            - HasIngressRules
+            - !Split
+              - ","
+              - !Ref IngressRules
+            - []
+      SecurityGroupEgress:
+        - Fn::If:
+            - HasEgressRules
+            - !Split
+              - ","
+              - !Ref EgressRules
+            - []
+
+Conditions:
+  HasIngressRules: !Not [ !Equals [ !Ref IngressRules, "" ] ]
+  HasEgressRules: !Not [ !Equals [ !Ref EgressRules, "" ] ]
+
+Outputs:
+  SecurityGroupId:
+    Description: The ID of the security group
+    Value: !Ref SecurityGroup
+  SecurityGroupArn:
+    Description: The ARN of the security group
+    Value: !GetAtt SecurityGroup.Arn

@@ -1,0 +1,130 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation Template to Create an AWS Budget with Enhanced Parameters
+
+Parameters:
+  BudgetName:
+    Type: String
+    Description: Name of the budget
+  BudgetAmount:
+    Type: Number
+    Description: Budget amount in USD
+  EmailAddress:
+    Type: String
+    Description: Email address for receiving budget notifications
+    AllowedPattern: "^[^@\\s]+@bell\\.ca$"
+    ConstraintDescription: "must be a valid bell.ca email address."
+  TimeUnit:
+    Type: String
+    Description: Time unit for the budget
+    AllowedValues: 
+      - DAILY
+      - MONTHLY
+      - QUARTERLY
+      - ANNUALLY
+    Default: MONTHLY
+  NotificationThreshold1:
+    Type: Number
+    Description: Threshold percentage for the first notification (e.g., 80 for 80%)
+    Default: 80
+    MinValue: 0
+    MaxValue: 100
+  NotificationThreshold2:
+    Type: Number
+    Description: Threshold percentage for the second notification (optional, e.g., 90 for 90%)
+    Default: 90
+    MinValue: 0
+    MaxValue: 100
+  NotificationThreshold3:
+    Type: Number
+    Description: Threshold percentage for the third notification (optional, e.g., 100 for 100%)
+    Default: 100
+    MinValue: 0
+    MaxValue: 100
+  ServiceFilter:
+    Type: CommaDelimitedList
+    Description: Optional comma-separated service filter
+    Default: ""
+
+Resources:
+  MyBudget:
+    Type: "AWS::Budgets::Budget"
+    Properties: 
+      Budget: 
+        BudgetName: 
+          Ref: BudgetName
+        BudgetLimit: 
+          Amount: 
+            Ref: BudgetAmount
+          Unit: "USD"
+        TimeUnit: 
+          Ref: TimeUnit
+        BudgetType: 
+          "COST"
+        CostFilters:
+          Fn::If:
+            - ServiceFilterCondition
+            - 
+              Service:
+                Ref: ServiceFilter
+            - 
+              Ref: AWS::NoValue
+      NotificationsWithSubscribers:
+        - Notification: 
+            NotificationType: "ACTUAL"
+            ComparisonOperator: "GREATER_THAN"
+            Threshold: 
+              Ref: NotificationThreshold1
+            ThresholdType: "PERCENTAGE"
+          Subscribers: 
+            - SubscriptionType: "EMAIL"
+              Address: 
+                Ref: EmailAddress
+        - Notification: 
+            NotificationType: "ACTUAL"
+            ComparisonOperator: "GREATER_THAN"
+            Threshold: 
+              Ref: NotificationThreshold2
+            ThresholdType: "PERCENTAGE"
+          Subscribers: 
+            - SubscriptionType: "EMAIL"
+              Address: 
+                Ref: EmailAddress
+        - Notification: 
+            NotificationType: "ACTUAL"
+            ComparisonOperator: "GREATER_THAN"
+            Threshold: 
+              Ref: NotificationThreshold3
+            ThresholdType: "PERCENTAGE"
+          Subscribers: 
+            - SubscriptionType: "EMAIL"
+              Address: 
+                Ref: EmailAddress
+
+Conditions:
+  ServiceFilterCondition: 
+    Fn::Not:
+      - Fn::Equals:
+          - Ref: ServiceFilter
+          - [""]
+
+Outputs:
+  BudgetName:
+    Description: The name of the created budget
+    Value: 
+      Ref: BudgetName
+  BudgetAmount:
+    Description: The budget amount in USD
+    Value: 
+      Ref: BudgetAmount
+  EmailAddress:
+    Description: The email address for budget notifications
+    Value: 
+      Ref: EmailAddress
+  TimeUnit:
+    Description: The time unit for the budget
+    Value: 
+      Ref: TimeUnit
+  ServiceFilter:
+    Description: The service filter applied to the budget
+    Value: 
+      Ref: ServiceFilter

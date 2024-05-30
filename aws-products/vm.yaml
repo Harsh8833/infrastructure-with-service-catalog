@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Self-Service EC2 Instance Deployment Template
+
+Parameters:
+  InstanceType:
+    Type: String
+    Description: EC2 instance type (e.g., t2.micro)
+    Default: t2.micro
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t3.nano
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: The ID of the VPC
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: The ID of the subnet
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: The security group IDs to assign to the EC2 instance
+  ImageId:
+    Type: AWS::EC2::Image::Id
+    Description: The AMI ID to use for the EC2 instance
+  VolumeSize:
+    Type: Number
+    Description: The size of the EBS volume in GB
+    Default: 8
+
+Resources:
+  EC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds: !Ref SecurityGroupIds
+      ImageId: !Ref ImageId
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: !Ref VolumeSize
+
+Outputs:
+  InstanceId:
+    Description: The instance ID of the created EC2 instance
+    Value: !Ref EC2Instance
+  PublicIpAddress:
+    Description: The public IP address of the created EC2 instance
+    Value: !GetAtt EC2Instance.PublicIp
+  PrivateIpAddress:
+    Description: The private IP address of the created EC2 instance
+    Value: !GetAtt EC2Instance.PrivateIp

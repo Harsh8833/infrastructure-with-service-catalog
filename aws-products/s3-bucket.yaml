@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Self-Service S3 Bucket Deployment Template
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: The name of the S3 bucket
+  AccessControl:
+    Type: String
+    Description: The canned ACL to apply to the bucket (e.g., private, public-read)
+    AllowedValues: [ "private", "public-read", "public-read-write", "authenticated-read" ]
+    Default: "private"
+  EnableVersioning:
+    Type: String
+    Description: Enable versioning for the bucket (true or false)
+    AllowedValues: [ "true", "false" ]
+    Default: "false"
+  EnableLogging:
+    Type: String
+    Description: Enable server access logging for the bucket (true or false)
+    AllowedValues: [ "true", "false" ]
+    Default: "false"
+  LogBucketName:
+    Type: String
+    Description: The name of the bucket to store access logs (required if EnableLogging is true)
+    Default: ""
+  LogBucketPrefix:
+    Type: String
+    Description: The prefix for the access log objects (optional)
+    Default: ""
+
+Conditions:
+  EnableLoggingCondition: !Equals [ !Ref EnableLogging, "true" ]
+
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref BucketName
+      AccessControl: !Ref AccessControl
+      VersioningConfiguration:
+        Status: !If [EnableLoggingCondition, "Enabled", "Suspended"]
+      LoggingConfiguration:
+        Fn::If:
+          - EnableLoggingCondition
+          - DestinationBucketName: !Ref LogBucketName
+            LogFilePrefix: !Ref LogBucketPrefix
+          - Ref: AWS::NoValue
+
+  S3BucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          - Action: 's3:*'
+            Effect: Deny
+            Resource: !Sub 'arn:aws:s3:::${BucketName}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+            Principal: '*'
+
+Outputs:
+  BucketName:
+    Description: The name of the S3 bucket
+    Value: !Ref S3Bucket
+  BucketArn:
+    Description: The ARN of the S3 bucket
+    Value: !GetAtt S3Bucket.Arn
+  LoggingEnabled:
+    Description: Indicates if server access logging is enabled for the bucket
+    Value: !Ref EnableLogging

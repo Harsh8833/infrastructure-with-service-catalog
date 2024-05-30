@@ -1,37 +1,31 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Self-Service Lambda Function Deployment Template
-
 Parameters:
   FunctionName:
     Type: String
-    Description: The name of the Lambda function
+    Default: AwsLambdaMinimalExample
+    Description: Name of the Lambda function.
   Handler:
     Type: String
-    Description: The handler for the Lambda function (e.g., index.handler)
+    Default: index.handler
+    Description: The function within your code that Lambda calls to begin execution.
   Runtime:
     Type: String
-    Description: The runtime environment for the Lambda function (e.g., nodejs14.x, python3.8)
-  RoleArn:
-    Type: String
-    Description: The ARN of the IAM role for the Lambda function
-  S3Bucket:
-    Type: String
-    Description: The S3 bucket containing the Lambda function code
-  S3Key:
-    Type: String
-    Description: The S3 key (object name) of the Lambda function code
+    Default: nodejs20.x
+    AllowedValues:
+      - nodejs16.x
+      - nodejs18.x
+      - nodejs20.x
+    Description: The runtime environment for the Lambda function.
   MemorySize:
     Type: Number
-    Description: The amount of memory available to the Lambda function (in MB)
-    Default: 128
-  Timeout:
-    Type: Number
-    Description: The function execution timeout (in seconds)
-    Default: 60
-  EnvironmentVariables:
-    Type: CommaDelimitedList
-    Description: Environment variables for the Lambda function (e.g., key1=value1,key2=value2)
-    Default: ""
+    Default: 1024
+    Description: The amount of memory available to the function at runtime.
+  S3Bucket:
+    Type: String
+    Description: The S3 bucket where the Lambda deployment package is stored.
+  S3Key:
+    Type: String
+    Description: The S3 key (file name) for the Lambda deployment package.
 
 Resources:
   LambdaFunction:
@@ -40,36 +34,33 @@ Resources:
       FunctionName: !Ref FunctionName
       Handler: !Ref Handler
       Runtime: !Ref Runtime
-      Role: !Ref RoleArn
+      Role: !GetAtt LambdaFunctionRole.Arn
+      MemorySize: !Ref MemorySize
       Code:
         S3Bucket: !Ref S3Bucket
         S3Key: !Ref S3Key
-      MemorySize: !Ref MemorySize
-      Timeout: !Ref Timeout
-      Environment:
-        Variables:
-          Fn::If:
-            - HasEnvVars
-            - !Sub
-              - |
-                {
-                ${EnvironmentVariables}
-                }
-              - EnvironmentVariables: !Join
-                - ","
-                - !Ref EnvironmentVariables
-            - {}
 
-Conditions:
-  HasEnvVars:
-    Fn::Not:
-      - Fn::Equals:
-          - !Ref EnvironmentVariables
-          - ""
-
-Outputs:
-  FunctionArn:
-    Description: The ARN of the created Lambda function
-    Value: !GetAtt LambdaFunction.Arn
-    Export:
-      Name: !Sub '${FunctionName}-Arn'
+  LambdaFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: AppendToLogsPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: "*"

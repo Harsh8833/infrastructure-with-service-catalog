@@ -1,68 +1,83 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Self-Service RDS Instance Deployment Template
-
 Parameters:
   DBInstanceIdentifier:
     Type: String
-    Description: The database instance identifier
+    Default: MyRDSInstance
+    Description: The DB instance identifier.
   DBInstanceClass:
     Type: String
-    Description: The compute and memory capacity of the DB instance (e.g., db.t2.micro)
-  AllocatedStorage:
-    Type: Number
-    Description: The allocated storage size specified in GBs
-    Default: 20
-  DBName:
-    Type: String
-    Description: The name of the database to create
+    Default: db.t3.micro
+    AllowedValues:
+      - db.t3.micro
+      - db.t3.small
+      - db.t3.medium
+      - db.t3.large
+    Description: The compute and memory capacity of the DB instance.
   Engine:
     Type: String
-    Description: The name of the database engine to be used for this instance (e.g., MySQL, PostgreSQL)
+    Default: mysql
+    AllowedValues:
+      - mysql
+      - postgres
+      - oracle-se2
+      - sqlserver-ee
+      - sqlserver-se
+      - sqlserver-ex
+      - sqlserver-web
+    Description: The database engine to use.
+  EngineVersion:
+    Type: String
+    Default: "8.0"
+    Description: The version number of the database engine to use.
   MasterUsername:
     Type: String
-    Description: The name of the master user for the database instance
+    Default: admin
+    Description: The master username for the DB instance.
   MasterUserPassword:
     Type: String
-    Description: The password for the master database user
     NoEcho: true
+    Description: The master user password for the DB instance.
+  AllocatedStorage:
+    Type: Number
+    Default: 20
+    Description: The size of the DB instance storage in gigabytes.
   VPCSecurityGroupIds:
-    Type: List<AWS::EC2::SecurityGroup::Id>
-    Description: List of VPC security groups to associate with the RDS instance
+    Type: CommaDelimitedList
+    Description: A list of VPC security groups to associate with the DB instance.
   DBSubnetGroupName:
     Type: String
-    Description: A DB subnet group to associate with the DB instance
-  MultiAZ:
-    Type: String
-    Description: Specifies if the DB instance is a Multi-AZ deployment (true or false)
-    AllowedValues: [ "true", "false" ]
-    Default: "false"
+    Description: A DB subnet group to associate with the DB instance.
 
 Resources:
-  RDSInstance:
-    Type: 'AWS::RDS::DBInstance'
+  MyDBInstance:
+    Type: AWS::RDS::DBInstance
     Properties:
       DBInstanceIdentifier: !Ref DBInstanceIdentifier
       DBInstanceClass: !Ref DBInstanceClass
-      AllocatedStorage: !Ref AllocatedStorage
-      DBName: !Ref DBName
       Engine: !Ref Engine
+      EngineVersion: !Ref EngineVersion
       MasterUsername: !Ref MasterUsername
       MasterUserPassword: !Ref MasterUserPassword
+      AllocatedStorage: !Ref AllocatedStorage
       VPCSecurityGroups: !Ref VPCSecurityGroupIds
       DBSubnetGroupName: !Ref DBSubnetGroupName
-      MultiAZ: !Ref MultiAZ
+      BackupRetentionPeriod: 7
+      MultiAZ: false
       PubliclyAccessible: false
+      StorageType: gp2
+
+  MyDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: "Subnet group for RDS instance"
+      SubnetIds:
+        - subnet-xxxxxxxx
+        - subnet-yyyyyyyy
 
 Outputs:
-  DBInstanceIdentifier:
-    Description: The database instance identifier
-    Value: !Ref RDSInstance
-  DBEndpointAddress:
-    Description: The connection endpoint for the RDS instance
-    Value: !GetAtt RDSInstance.Endpoint.Address
-  DBEndpointPort:
-    Description: The port number on which the database accepts connections
-    Value: !GetAtt RDSInstance.Endpoint.Port
-  DBInstanceArn:
-    Description: The ARN of the RDS instance
-    Value: !GetAtt RDSInstance.Arn
+  DBInstanceEndpoint:
+    Description: The endpoint address of the RDS instance.
+    Value: !GetAtt MyDBInstance.Endpoint.Address
+  DBInstancePort:
+    Description: The port number on which the database accepts connections.
+    Value: !GetAtt MyDBInstance.Endpoint.Port

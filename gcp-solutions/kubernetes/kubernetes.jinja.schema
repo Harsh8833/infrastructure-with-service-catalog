@@ -1,0 +1,44 @@
+schema:
+  type: object
+  properties:
+    project_id:
+      type: string
+      description: "The GCP project ID where the Kubernetes cluster will be deployed."
+    cluster_name:
+      type: string
+      description: "The name of the Kubernetes cluster."
+    zone:
+      type: string
+      description: "The GCP zone where the cluster will be deployed."
+    initial_node_count:
+      type: integer
+      description: "The number of nodes to create in the cluster."
+      default: 3
+    machine_type:
+      type: string
+      description: "The machine type for the nodes."
+      default: "n1-standard-1"
+    node_version:
+      type: string
+      description: "The Kubernetes version for the nodes."
+      default: "1.21.5-gke.1302"
+    network:
+      type: string
+      description: "The VPC network where the cluster will be created."
+    subnetwork:
+      type: string
+      description: "The subnetwork where the cluster will be created."
+    enable_private_nodes:
+      type: boolean
+      description: "Whether to create a private cluster."
+      default: false
+    enable_network_policy:
+      type: boolean
+      description: "Whether to enable network policy on the cluster."
+      default: true
+  required:
+    - project_id
+    - cluster_name
+    - zone
+    - network
+    - subnetwork

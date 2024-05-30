@@ -1,0 +1,41 @@
+resources:
+  - name: {{ cluster_name }}
+    type: container.v1.cluster
+    properties:
+      zone: {{ zone }}
+      cluster:
+        name: {{ cluster_name }}
+        initialNodeCount: {{ initial_node_count }}
+        nodeConfig:
+          machineType: {{ machine_type }}
+          oauthScopes:
+            - https://www.googleapis.com/auth/logging.write
+            - https://www.googleapis.com/auth/monitoring
+          imageType: COS
+          preemptible: false
+          diskSizeGb: 100
+          diskType: pd-standard
+        initialClusterVersion: {{ node_version }}
+        network: {{ network }}
+        subnetwork: {{ subnetwork }}
+        privateClusterConfig:
+          enablePrivateNodes: {{ enable_private_nodes }}
+          enablePrivateEndpoint: false
+        networkPolicy:
+          enabled: {{ enable_network_policy }}
+          provider: CALICO
+        addonsConfig:
+          httpLoadBalancing:
+            disabled: false
+          horizontalPodAutoscaling:
+            disabled: false
+          kubernetesDashboard:
+            disabled: true
+        ipAllocationPolicy:
+          useIpAliases: true
+        loggingService: logging.googleapis.com/kubernetes
+        monitoringService: monitoring.googleapis.com/kubernetes
+        maintenancePolicy:
+          window:
+            dailyMaintenanceWindow:
+              startTime: 03:00

@@ -1,0 +1,16 @@
+resources:
+- type: gcp-types/cloudfunctions-v1:projects.locations.functions
+  name: {{ env['deployment'] }}-my-function
+  properties:
+    parent: projects/{{ env['project'] }}/locations/{{ properties['region'] }}
+    function: my-{{ env['deployment'] }}
+    sourceArchiveUrl: {{ properties['sourceArchiveUrl'] }}
+    entryPoint: {{ properties['entryPoint'] }}
+    runtime: {{ properties['runtime'] }}
+    eventTrigger:
+      resource: $(ref.my-topic.name)
+      eventType: providers/cloud.pubsub/eventTypes/topic.publish
+- type: gcp-types/pubsub-v1:projects.topics
+  name: my-topic
+  properties:
+    topic: {{ properties['topic'] }}

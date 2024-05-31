@@ -1,0 +1,23 @@
+# Jinja template for Google Cloud SQL Deployment
+
+resources:
+- name: {{ properties['instanceName'] }}
+  type: gcp-types/sqladmin-v1beta4:instances
+  properties:
+    region: {{ properties['region'] }}
+    databaseVersion: {{ properties['databaseVersion'] }}
+    settings:
+      tier: {{ properties['tier'] }}
+      backupConfiguration:
+        enabled: {{ properties['backupEnabled'] }}
+      ipConfiguration:
+        authorizedNetworks:
+        - value: {{ properties['authorizedNetwork'] }}
+
+outputs:
+- name: instanceName
+  value: $(ref.{{ properties['instanceName'] }}.name)
+- name: databaseVersion
+  value: $(ref.{{ properties['instanceName'] }}.databaseVersion)
+- name: region
+  value: $(ref.{{ properties['instanceName'] }}.region)

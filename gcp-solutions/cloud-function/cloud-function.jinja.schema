@@ -1,0 +1,43 @@
+name: my-cloud-function-deployment
+description: Schema for deploying a Google Cloud Function with a Pub/Sub trigger.
+schema_version: 1.0.0
+properties:
+  region:
+    type: string
+    description: The region where the Cloud Function will be deployed.
+    default: us-central1
+    enum:
+      - us-central1
+      - us-east1
+      - us-east4
+      - europe-west1
+      - europe-west2
+      - asia-east1
+      - northamerica-northeast1-a
+  entryPoint:
+    type: string
+    description: The name of the function to execute in the deployment.
+  runtime:
+    type: string
+    description: The runtime environment for the Cloud Function.
+    enum:
+      - nodejs14
+      - nodejs16
+      - python37
+      - python38
+      - python39
+      - go111
+      - go113
+      - java11
+      - ruby26
+      - ruby27
+      - dotnet3
+      - nodejs10
+  sourceArchiveUrl:
+    type: string
+    description: The URL of the source code archive in Google Cloud Storage.
+    default: gs://cloud-function-sample/function.zip
+  topic:
+    type: string
+    description: The name of the Pub/Sub topic to trigger the Cloud Function.
+    default: my-topic

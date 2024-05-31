@@ -1,0 +1,35 @@
+name: pubsub-deployment
+description: Schema for creating a Pub/Sub topic and subscription using Service Catalog.
+schema_version: 1.0.0
+properties:
+  topicName:
+    type: string
+    description: The name of the Pub/Sub topic.
+    required: true
+  subscriptionName:
+    type: string
+    description: The name of the Pub/Sub subscription.
+    required: true
+  messageRetentionDuration:
+    type: string
+    description: The duration for which to retain unacknowledged messages, in the format `PTnHnMnS`.
+    required: false
+  retainAckedMessages:
+    type: boolean
+    description: Indicates whether to retain acknowledged messages.
+    required: false
+  ackDeadlineSeconds:
+    type: integer
+    description: The time in seconds for the acknowledgment deadline.
+    required: false
+    minimum: 1
+    maximum: 600
+  expirationPolicy:
+    type: object
+    description: The policy that specifies the conditions for subscription expiration.
+    required: false
+    properties:
+      ttl:
+        type: string
+        description: The TTL (time-to-live) duration for the subscription, in the format `PnDTnHnMnS`.
+        required: true

@@ -1,0 +1,62 @@
+info:
+  title: Google Cloud SQL Deployment
+  author: Your Name
+  description: Creates a Google Cloud SQL instance based on the provided parameters.
+
+required:
+  - instanceName
+  - region
+  - databaseVersion
+  - tier
+  - backupEnabled
+  - authorizedNetwork
+
+properties:
+  instanceName:
+    title: Instance Name
+    type: string
+    description: Name of the Cloud SQL instance
+
+  region:
+    title: Region
+    type: string
+    description: Region for the Cloud SQL instance (e.g., us-central1)
+    enum:
+	- northamerica-northeast1
+      - us-central1
+      - us-east1
+      - us-west1
+      - europe-west1
+      - asia-east1
+
+  databaseVersion:
+    title: Database Version
+    type: string
+    description: Database version (e.g., MYSQL_5_7)
+    enum:
+      - MYSQL_5_6
+      - MYSQL_5_7
+      - POSTGRES_9_6
+      - POSTGRES_11
+      - POSTGRES_12
+
+  tier:
+    title: Service Tier
+    type: string
+    description: Service tier for the Cloud SQL instance (e.g., db-f1-micro)
+    enum:
+      - db-f1-micro
+      - db-g1-small
+      - db-n1-standard-1
+      - db-n1-standard-2
+      - db-n1-standard-4
+
+  backupEnabled:
+    title: Backup Enabled
+    type: boolean
+    description: Enable backups for the instance
+
+  authorizedNetwork:
+    title: Authorized Network
+    type: string
+    description: Authorized network for database access

@@ -37,7 +37,5 @@ resources:
       
       {% if "expirationPolicy" in properties %}
       expirationPolicy:
-        ttl: {{ properties["expirationPolicy"].ttl }}
+        ttl: {{ properties["expirationPolicy"]["ttl"] }}
       {% endif %}
-      
-  
